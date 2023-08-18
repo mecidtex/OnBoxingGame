@@ -1,34 +1,47 @@
-﻿namespace OnBoxingGame
+﻿using System.ComponentModel;
+using System.Drawing;
+
+namespace OnBoxingGame
 {
     internal class Program
     {
-        private static string chr;
+        private static string Character = "";
         private static int Luck;
-        private static string Rarity;
+        private static RarityType Rarity;
         private static int Money = 10;
         private static int Score = 0;
-        private static string AgainAnswer;
+        private static string AgainAnswer = "";
         private static int ReleasedLegendaryNumber;
-        private static int ConsecutiveRares; //To prevent rare characters from appearing more than 3 times in a row.
+        private static int ReleasedChromoticNumber;
         private static int AdMoney;
+        // To prevent rare characters from appearing more than 3 times in a row.
+        private static int ConsecutiveRares = 0;
+
+        private enum RarityType
+        {
+            [Description("Rare")]
+            Rare,
+            SuperRare,
+            Epic,
+            Mysterious,
+            Legendary,
+            Chromotic
+        }
+
+
 
         static void Main(string[] args)
         {
-            WriteLineMessageWithColor("Your Money : " + Money, ConsoleColor.Gray);
-            WriteLineMessageWithColor("Box Price = 5$", ConsoleColor.Gray);
+            WriteLineMessageWithColor("Your Money : " + Money, ConsoleColor.DarkGray);
+            WriteLineMessageWithColor("Box Price = 5$", ConsoleColor.DarkGray);
             AskOpening();
         }
 
-        static void WriteLineMessageWithColor(string message, ConsoleColor color)
-        {
-            Console.ForegroundColor = color;
-            Console.WriteLine(message);
-            Console.ResetColor();
-        }
 
         static void AskOpening()
         {
-            WriteLineMessageWithColor("Type \"A\" to open a box.", ConsoleColor.DarkGray);
+            WriteMessageWithColor("Type \"A\" to open a box.", ConsoleColor.Gray);
+            WriteLineMessageWithColor(" Type \"i\" to learn about the game.", ConsoleColor.White);
             try
             {
                 char UserChar = Convert.ToChar(Console.ReadLine());
@@ -43,14 +56,30 @@
                     {
                         WriteLineMessageWithColor("Insufficient Money!", ConsoleColor.DarkRed);
                         WriteLineMessageWithColor("--- GAME OVER ---", ConsoleColor.DarkRed);
-                        WriteLineMessageWithColor("Your Score : " + Score, ConsoleColor.White);
-                        
+                        Console.BackgroundColor = ConsoleColor.Red;
+                        Console.Write("Your Score : " + Score);
+                        Console.ResetColor();
+                        Console.WriteLine("");
+                        AskAgain();
+
 
                     }
                 }
-                else if(char.ToLower(UserChar) == 'e')
+                else if (char.ToLower(UserChar) == 'i') //About The Game
+                {
+                    Console.BackgroundColor = ConsoleColor.Gray;
+                    WriteLineMessageWithColor("Earn money by opening boxes. Type A to open a box.\r\nDifferent rarities give money in different quantity ranges.\r\n\r\nStarting with the lowest rarity:\r\n\r\n-Rare\r\n-Super Rare\r\n-Epic\r\n-Mysterious\r\n-Legendary\r\n\r\nHow does the game over?\r\n\r\nWhen you don't have enough money to open a box, it's game over.\r\n(One box costs $5)",
+                        ConsoleColor.Black);
+                    Thread.Sleep(3500); // Read Time
+                    Console.WriteLine("");
+
+                    Console.WriteLine("***************************************************");
+                    AskOpening();
+                }
+                else if (char.ToLower(UserChar) == 'e') // SECRET ANSWER
                 {
                     WriteLineMessageWithColor("Number of Legendary characters released : " + ReleasedLegendaryNumber, ConsoleColor.Yellow);
+                    PrintRainbowText("Number of Chromotic characters released : " + ReleasedChromoticNumber);
                     AskOpening();
                 }
                 else
@@ -62,11 +91,13 @@
             catch (Exception)
             {
                 Console.BackgroundColor = ConsoleColor.White;
-                WriteLineMessageWithColor("Incorrect entry! Try again", ConsoleColor.Red);
+                WriteMessageWithColor("Incorrect entry! Try again", ConsoleColor.Red);
+                Console.WriteLine("");
+                Thread.Sleep(600);
                 AskOpening();
             }
-            
-            
+
+
         }
 
         static void OpenBox()
@@ -74,161 +105,203 @@
             Random rdm = new();
             Console.WriteLine("The box is opening...");
             Thread.Sleep(2000);
+            
 
-            //Rare
-            Rarity = "Rare";
-            Luck = rdm.Next(2); //Like True-False
+            Luck = (ConsecutiveRares > 2) ? rdm.Next(2) : 1;
             if (Luck == 0)
             {
+                Rarity = RarityType.Rare;
                 CharacterOpen();
                 Console.WriteLine("------[]------");
-                WriteLineMessageWithColor("Character : " + chr, ConsoleColor.White);
-                WriteLineMessageWithColor("Rarity : " + Rarity, ConsoleColor.Green);
+                WriteLineMessageWithColor($"Character : {Character}", ConsoleColor.White);
+                WriteLineMessageWithColor($"Rarity : Rare", ConsoleColor.Green);
 
                 GiveMoney();
-                Thread.Sleep(1000);
+                Thread.Sleep(900);
                 AskOpening();
             }
             else if (Luck == 1)
             {
-                Rarity = "Super Rare";
-                Luck = rdm.Next(2);
-                Luck = (ConsecutiveRares > 2) ? rdm.Next(2) : 1;
-                if (Luck == 0)
+                Rarity = RarityType.SuperRare;
+                Luck = rdm.Next(3);
+                if (Luck != 2)
                 {
                     // Super Rare
                     CharacterOpen();
                     Console.WriteLine("------[]------");
-                    WriteLineMessageWithColor("Character : " + chr, ConsoleColor.White);
-                    WriteLineMessageWithColor("Rarity : " + Rarity, ConsoleColor.DarkCyan);
+                    WriteLineMessageWithColor($"Character : {Character}", ConsoleColor.White);
+                    WriteLineMessageWithColor("Rarity : Super Rare", ConsoleColor.DarkCyan);
 
                     GiveMoney();
+                    ConsecutiveRares = 0;
                     Thread.Sleep(1000);
                     AskOpening();
                 }
-                else if (Luck == 1)
+                else if (Luck == 2)
                 {
-                    Rarity = "Epic";
-                    Luck = rdm.Next(2);
-                    if (Luck == 0)
+                    Rarity = RarityType.Epic;
+                    Luck = rdm.Next(3);
+                    if (Luck == 0 || Luck == 3)
                     {
                         // Epic
                         CharacterOpen();
                         Console.WriteLine("------[]------");
-                        WriteLineMessageWithColor("Character : " + chr, ConsoleColor.White);
-                        WriteLineMessageWithColor("Rarity : " + Rarity, ConsoleColor.DarkBlue);   
+                        WriteLineMessageWithColor($"Character : {Character}", ConsoleColor.White);
+                        WriteLineMessageWithColor("Rarity : Epic", ConsoleColor.DarkBlue);
                         GiveMoney();
+                        ConsecutiveRares = 0;
                         Thread.Sleep(1000);
                         AskOpening();
 
                     }
-                    else if (Luck == 1)
+                    else if (Luck == 2)
                     {
-                        Rarity = "Myhtical";
-                        Luck = rdm.Next(3);
-                        if (Luck == 0 || Luck == 1 || Luck == 3)
+                        Rarity = RarityType.Mysterious;
+                        Luck = rdm.Next(4);
+                        if (Luck != 2)
                         {
-                            // Myhtical
+                            // Mysterious
                             CharacterOpen();
                             WriteLineMessageWithColor("**--?---[???]---?--**", ConsoleColor.DarkRed);
-                            Thread.Sleep(700);
-                            WriteLineMessageWithColor("Character : " + chr, ConsoleColor.White);
-                            WriteLineMessageWithColor("Rarity : " + Rarity, ConsoleColor.Red);
-                            WriteLineMessageWithColor("-----------------", ConsoleColor.DarkRed);
+                            Thread.Sleep(850);
+                            WriteLineMessageWithColor($"Character : {Character}", ConsoleColor.White);
+                            WriteLineMessageWithColor("Rarity : Mysterious", ConsoleColor.Red);
+                            WriteLineMessageWithColor("----?-----------?----", ConsoleColor.DarkRed);
 
                             GiveMoney();
-                            Thread.Sleep(1000);
+                            ConsecutiveRares = 0;
+                            Thread.Sleep(1300);
                             AskOpening();
                         }
                         else if (Luck == 2)
                         {
-                            Rarity = "Legendary";
+                            Rarity = RarityType.Legendary;
+                            Luck = rdm.Next(7);
 
-                            // Legendary
-                            CharacterOpen();
-                            WriteLineMessageWithColor("~~~~~~~~~~~ * ~~~~~~~~~~~", ConsoleColor.DarkYellow);
-                            WriteLineMessageWithColor("Character : " + chr, ConsoleColor.White);
-                            WriteLineMessageWithColor("Rarity : " + Rarity, ConsoleColor.Yellow);
-                            WriteLineMessageWithColor("~~~~~~~~~~~ * ~~~~~~~~~~~", ConsoleColor.DarkYellow);
-                            GiveMoney();
+                            if (Luck != 5)
+                            {
 
-                            Thread.Sleep(1500);
-                            AskOpening();
+                                // Legendary
+                                CharacterOpen();
+                                WriteLineMessageWithColor("~~~~~~~~~~~ [-( * )-] ~~~~~~~~~~~", ConsoleColor.DarkYellow);
+                                WriteLineMessageWithColor($"Character : {Character}", ConsoleColor.White);
+                                WriteLineMessageWithColor("Rarity : Legendary", ConsoleColor.Yellow);
+                                GiveMoney();
+                                WriteLineMessageWithColor("~~~~~~~~~~~~~~~ * ~~~~~~~~~~~~~~~", ConsoleColor.DarkYellow);
+
+                                ConsecutiveRares = 0;
+                                Thread.Sleep(1850);
+                                AskOpening();
+                            }
+                            else if (Luck == 5)
+                            {
+                                Rarity = RarityType.Chromotic;
+
+                                // Chromotic
+                                CharacterOpen();
+                                PrintRainbowText("~~~~~~~~~ [ # # # ] ~~~~~~~~~");
+                                WriteLineMessageWithColor($"Character : {Character}", ConsoleColor.White);
+                                PrintRainbowText("Rarity : Chromotic");
+                                GiveMoney();
+                                PrintRainbowText("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                            }
                         }
 
                     }
 
                 }
             }
+
+
         }
 
         static void GiveMoney()
         {
             Random rdm = new();
-             switch (Rarity)
+            switch (Rarity)
             {
-                case "Rare":
+                case RarityType.Rare:
                     AdMoney = rdm.Next(2, 7); // Min. -3
-                    Score +=1;
+                    Score += 1;
                     break;
 
-                case "Super Rare":
+                case RarityType.SuperRare:
                     AdMoney = rdm.Next(3, 8); // Min. -2
                     Score += 2;
                     break;
 
-                case "Epic":
+                case RarityType.Epic:
                     AdMoney = rdm.Next(4, 12); // Min. -1 Max. 7
                     Score += 4;
                     break;
 
-                case "Myhtical":
+                case RarityType.Mysterious:
                     AdMoney = rdm.Next(14, 23); // Min. +9
                     Score += 6;
                     break;
-                                
-                case "Legendary":
+
+                case RarityType.Legendary:
                     AdMoney = rdm.Next(28, 40); //23-35
 
-                    Money = Money + AdMoney;
+                    Money += AdMoney;
 
                     AdMoney -= 5;
-                    WriteLineMessageWithColor("Money : " + AdMoney.ToString(), ConsoleColor.Yellow);
+                    WriteLineMessageWithColor("Money : " + AdMoney.ToString(), ConsoleColor.White);
                     Score += 10;
                     ReleasedLegendaryNumber++;
                     break;
+
+                case RarityType.Chromotic:
+                    AdMoney = rdm.Next(55, 75); //50-70
+
+                    Money += AdMoney;
+
+                    AdMoney -= 5;
+                    WriteLineMessageWithColor("Money : " + AdMoney.ToString(), ConsoleColor.White);
+                    Score += 18;
+                    ReleasedChromoticNumber++;
+                    break;
             }
 
-            if(Rarity != "Legendary" && Rarity != "Myhtical") //If not Legandary...
+
+            if (Rarity != RarityType.Mysterious && Rarity != RarityType.Legendary && Rarity != RarityType.Chromotic)    // If not Mysterius , Legendary or Chromotic...
             {
-                Money = Money + AdMoney;
+                Money += AdMoney;
 
                 AdMoney -= 5;
                 WriteLineMessageWithColor($"Money : {AdMoney}", ConsoleColor.White);
-                Console.WriteLine("-----------------");
+                Console.WriteLine("--------------");
                 WriteLineMessageWithColor("Your Money : " + Money, ConsoleColor.Gray);
             }
-            else //If Legendary...
+            else //If Legendary, Mysterious or Chromotic...
             {
-                switch (Rarity)
+                if (Rarity == RarityType.Mysterious)
                 {
-                    case "Myhtical":
-                        Money = Money + AdMoney;
+                    Money += AdMoney;
 
-                        AdMoney -= 5;
-                        WriteLineMessageWithColor("Your Money : " + Money, ConsoleColor.Gray);
-                        break;
+                    AdMoney -= 5;
+                    WriteLineMessageWithColor("Your Money : " + Money, ConsoleColor.Gray);
+                }
 
-                    case "Legendary":
-                        Money = Money + AdMoney;
+                if (Rarity == RarityType.Legendary)
+                {
+                    Money += AdMoney;
 
-                        AdMoney -= 5;
-                        WriteLineMessageWithColor("Your Money : " + Money, ConsoleColor.Gray);
-                        Console.WriteLine($"Number of Legendary characters released : {ReleasedLegendaryNumber}");
-                        break;
+                    AdMoney -= 5;
+                    WriteLineMessageWithColor("Your Money : " + Money, ConsoleColor.Gray);
+                    Console.WriteLine($"Number of Legendary characters released : {ReleasedLegendaryNumber}");
+                }
+
+                if (Rarity == RarityType.Chromotic)
+                {
+                    Money += AdMoney;
+
+                    AdMoney -= 5;
+                    WriteLineMessageWithColor("Your Money : " + Money, ConsoleColor.Gray);
+                    Console.WriteLine($"Number of Chromotic characters released : {ReleasedChromoticNumber}");
                 }
             }
-            
+
 
         }
 
@@ -237,29 +310,35 @@
             string[] RareCharacters = { "Nita", "Colt", "Bull", "Brock", "El Primo", "Poco", "Barley", "Rosa" };
             string[] SuperRareCharacters = { "Rico", "Jacky", "8-Bit", "Jessie", "Carl", "Darryl", "Penny", "Tick" };
             string[] EpicCharacters = { "Bibi", "Pam", "Bo", "Emz", "Frank", "Hank", "Piper", "Bonnie", "Edgar", "Bea", "Nani" };
-            string[] MyhticalCharacters = { "Byron", "Mortis", "Max", "Tara", "Gene", "Doug", "Mr.P", "Gray" , "Squeak" , "Sprout" };
+            string[] MysteriousCharacters = { "Byron", "Mortis", "Max", "Tara", "Gene", "Doug", "Mr.P", "Gray", "Squeak", "Sprout" };
             string[] LegendaryCharacters = { "Sandy", "Spike", "Leon", "Crow", "Amber", "Meg", "Chester" };
+            string[] ChromaticCharacters = { "Gale", "Surge", "Colette", "Colonel Ruffs", "Fang", "Lola", "Lou", "Otis", "Sam", "Maisie",
+                                             "Cordeilus", "Buster", "Janet", "Eve", "Mandy", "R-T", "Ash", "Belle", "Buzz" };
 
             switch (Rarity)
             {
-                case "Rare":
-                    chr = RareCharacters[new Random().Next(0, 7)];
+                case RarityType.Rare:
+                    Character = RareCharacters[new Random().Next(0, 7)];
                     break;
 
-                case "Super Rare":
-                    chr = SuperRareCharacters[new Random().Next(0, 7)];
+                case RarityType.SuperRare:
+                    Character = SuperRareCharacters[new Random().Next(0, 7)];
                     break;
 
-                case "Epic":
-                    chr = EpicCharacters[new Random().Next(0, 10)];
+                case RarityType.Epic:
+                    Character = EpicCharacters[new Random().Next(0, 9)];
                     break;
 
-                case "Myhtical":
-                    chr = MyhticalCharacters[new Random().Next(0, 8)];
+                case RarityType.Mysterious:
+                    Character = MysteriousCharacters[new Random().Next(0, MysteriousCharacters.Length - 1)];
                     break;
 
-                case "Legendary":
-                    chr = LegendaryCharacters[new Random().Next(0, 6)];
+                case RarityType.Legendary:
+                    Character = LegendaryCharacters[new Random().Next(0, 6)];
+                    break;
+
+                case RarityType.Chromotic:
+                    Character = ChromaticCharacters[new Random().Next(0, ChromaticCharacters.Length - 1)];
                     break;
 
                 default:
@@ -276,10 +355,12 @@
 
             try
             {
+                AgainAnswer = Console.ReadLine();
                 if (AgainAnswer.ToLower() == "yes")
                 {
                     Score = 0;
                     Money = 10;
+                    Console.WriteLine("***************************************************");
                     AskOpening();
 
                 }
@@ -288,7 +369,45 @@
             {
                 Console.BackgroundColor = ConsoleColor.White;
                 WriteLineMessageWithColor("Incorrect entry! Try again", ConsoleColor.DarkRed);
+                AskAgain();
             }
+        }
+
+        static void WriteLineMessageWithColor(string message, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine(message);
+            Console.ResetColor();
+        }
+
+        static void WriteMessageWithColor(string message, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
+            Console.Write(message);
+            Console.ResetColor();
+        }
+
+        static void PrintRainbowText(string text)
+        {
+            ConsoleColor[] colors = {
+                ConsoleColor.DarkBlue,
+                ConsoleColor.DarkRed,
+                ConsoleColor.DarkYellow,
+            };
+
+            int colorIndex = 0;
+
+            foreach (char c in text)
+            {
+                Console.ForegroundColor = colors[colorIndex];
+                Console.Write(c);
+                colorIndex = (colorIndex + 1) % colors.Length;
+            }
+
+
+
+            Console.ResetColor();
+            Console.WriteLine();
         }
 
     }
