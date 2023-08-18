@@ -93,6 +93,7 @@
             {
                 Rarity = "Super Rare";
                 Luck = rdm.Next(2);
+                Luck = (ConsecutiveRares > 2) ? rdm.Next(2) : 1;
                 if (Luck == 0)
                 {
                     // Super Rare
